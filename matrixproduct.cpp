@@ -11,7 +11,7 @@ using namespace std;
 #define SYSTEMTIME clock_t
 
 
-void OnMult(int m_ar, int m_br) 
+void OnMult(int m_ar, int m_br, int runs = 1) 
 {
 	
 	SYSTEMTIME Time1, Time2;
@@ -38,23 +38,25 @@ void OnMult(int m_ar, int m_br)
 			phb[i*m_br + j] = (double)(i+1);
 
 
-
+	int r = 0;
     Time1 = clock();
-
-	for(i=0; i<m_ar; i++)
-	{	for( j=0; j<m_br; j++)
-		{	temp = 0;
-			for( k=0; k<m_ar; k++)
-			{	
-				temp += pha[i*m_ar+k] * phb[k*m_br+j];
+	while(runs > r){
+		for(i=0; i<m_ar; i++)
+		{	for( j=0; j<m_br; j++)
+			{	temp = 0;
+				for( k=0; k<m_ar; k++)
+				{	
+					temp += pha[i*m_ar+k] * phb[k*m_br+j];
+				}
+				phc[i*m_ar+j]=temp;
 			}
-			phc[i*m_ar+j]=temp;
 		}
+		r++;
 	}
 
 
     Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC/runs);
 	cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
@@ -73,7 +75,7 @@ void OnMult(int m_ar, int m_br)
 }
 
 // add code here for line x line matriz multiplication
-void OnMultLine(int m_ar, int m_br)
+void OnMultLine(int m_ar, int m_br, int runs = 1)
 {
 	SYSTEMTIME Time1, Time2;
 	
@@ -99,22 +101,25 @@ void OnMultLine(int m_ar, int m_br)
 			phb[i*m_br + j] = (double)(i+1);
 
 
-
+	int r = 0;
     Time1 = clock();
+	while(runs > r){
 
-	for(i=0; i<m_ar; i++)
-	{	for( k=0; k<m_br; k++)
-		{	
-			for( j=0; j<m_ar; j++)
+		for(i=0; i<m_ar; i++)
+		{	for( k=0; k<m_br; k++)
 			{	
-				phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+				for( j=0; j<m_ar; j++)
+				{	
+					phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+				}
 			}
 		}
+		r++;
 	}
 
 
     Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC/runs);
 	cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
@@ -134,7 +139,7 @@ void OnMultLine(int m_ar, int m_br)
 }
 
 // add code here for block x block matriz multiplication
-void OnMultBlock(int m_ar, int m_br, int bkSize)
+void OnMultBlock(int m_ar, int m_br, int bkSize, int runs = 1)
 {
     SYSTEMTIME Time1, Time2;
 	
@@ -160,27 +165,29 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 			phb[i*m_br + j] = (double)(i+1);
 
 
-
+	int r = 0;
     Time1 = clock();
 
+	while (runs > r){
 
-	for(int ii = 0; ii < m_ar; ii += bkSize){
-		for(int jj=0;jj<m_ar;jj+= bkSize){
-			for(int kk=0;kk<m_ar;kk+= bkSize){
-				for(int i=0;i<bkSize;i++){
-					for(int k = 0; k<bkSize; k++){
-						for(int j = 0; j<bkSize; j++){
-						
-							phc[(ii+i)*m_ar+ (jj+j)]  += pha[(ii+i)*m_ar+(kk+k)]* phb[(kk+k)*m_ar+(jj+j)];
+		for(int ii = 0; ii < m_ar; ii += bkSize){
+			for(int jj=0;jj<m_ar;jj+= bkSize){
+				for(int kk=0;kk<m_ar;kk+= bkSize){
+					for(int i=0;i<bkSize;i++){
+						for(int k = 0; k<bkSize; k++){
+							for(int j = 0; j<bkSize; j++){
+							
+								phc[(ii+i)*m_ar+ (jj+j)]  += pha[(ii+i)*m_ar+(kk+k)]* phb[(kk+k)*m_ar+(jj+j)];
+							}
 						}
 					}
 				}
 			}
 		}
+		r++;
 	}
-
     Time2 = clock();
-	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC);
+	sprintf(st, "Time: %3.3f seconds\n", (double)(Time2 - Time1) / CLOCKS_PER_SEC/runs);
 	cout << st;
 
 	// display 10 elements of the result matrix tto verify correctness
@@ -199,21 +206,21 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
     
 }
 
-void printDCMs(int EventSet){
+void printDCMs(int EventSet, int runs){
 
   	long long values[2];
 	int ret;
 	ret = PAPI_stop(EventSet, values);
 	if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
-	printf("L1 DCM: %lld \n",values[0]);
-	printf("L2 DCM: %lld \n",values[1]);
+	printf("L1 DCM: %lld \n",values[0]/runs);
+	printf("L2 DCM: %lld \n",values[1]/runs);
 
 	ret = PAPI_reset( EventSet );
 	if ( ret != PAPI_OK )
 		std::cout << "FAIL reset" << endl; 
 }
 
-void runTests(int EventSet){
+void runTests(int EventSet, int runs){
 	
 	//1.
 	int initial_size = 600;
@@ -226,9 +233,9 @@ void runTests(int EventSet){
 		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
 
 		cout << "Size: " << i << " by " << i << endl;
-		OnMult(i,i);
+		OnMult(i,i, runs);
 
-		printDCMs(EventSet);
+		printDCMs(EventSet,runs);
 		cout << endl << endl;
 	}
 
@@ -243,9 +250,9 @@ void runTests(int EventSet){
 		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
 
 		cout << "Size: " << i << " by " << i << endl;
-		OnMultLine(i,i);
+		OnMultLine(i,i,runs);
 
-		printDCMs(EventSet);
+		printDCMs(EventSet,runs);
 		cout << endl << endl;
 	}
 
@@ -259,9 +266,9 @@ void runTests(int EventSet){
 		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
 
 		cout << "Size: " << i << " by " << i << endl;
-		OnMultLine(i,i);
+		OnMultLine(i,i,runs);
 
-		printDCMs(EventSet);
+		printDCMs(EventSet,runs);
 		cout << endl << endl;
 	}
 
@@ -279,9 +286,9 @@ void runTests(int EventSet){
 		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
 			cout << "Size: " << i << " by " << i << endl;
 			cout << "Block: " << j << endl;
-			OnMultLine(i,i);
+			OnMultBlock(i,i,j,runs);
 
-			printDCMs(EventSet);
+			printDCMs(EventSet,runs);
 			cout << endl << endl;
 		}
 
@@ -321,6 +328,7 @@ int main (int argc, char *argv[])
 	int EventSet = PAPI_NULL;
   	long long values[2];
   	int ret;
+	int runs = 4;
 	
 
 	ret = PAPI_library_init( PAPI_VER_CURRENT );
@@ -374,15 +382,15 @@ int main (int argc, char *argv[])
 				OnMultBlock(lin, col, blockSize);  
 				break;
 			case 4:
-				runTests(EventSet);
+				runTests(EventSet,runs);
 				break;
 
 		}
 
   		ret = PAPI_stop(EventSet, values);
   		if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
-  		printf("L1 DCM: %lld \n",values[0]);
-  		printf("L2 DCM: %lld \n",values[1]);
+  		printf("L1 DCM: %lld \n",values[0]/runs);
+  		printf("L2 DCM: %lld \n",values[1]/runs);
 
 		ret = PAPI_reset( EventSet );
 		if ( ret != PAPI_OK )

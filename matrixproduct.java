@@ -12,6 +12,7 @@ class MatrixProduct{
         Scanner sc = new Scanner(System.in);    //System.in is a standard input stream
         int op = sc.nextInt(); 
         int lin  = 0, col = 0;
+        int runs = 4;
 		if(op !=4){
 			System.out.println("Dimensions: lins=cols ? ");
 			lin = sc.nextInt();  
@@ -20,20 +21,20 @@ class MatrixProduct{
 
 		switch (op){
 			case 1: 
-				OnMult(lin, col);
+				OnMult(lin, col, 1);
 				break;
 			case 2:
-				OnMultLine(lin, col);  
+				OnMultLine(lin, col, 1);  
 				break;
 			case 4:
-				runTests();
+				runTests(4);
 				break;
 
 		}
 
     }  
 
-    public static void OnMult(int m_ar, int m_br){
+    public static void OnMult(int m_ar, int m_br, int runs){
         
         //creating 3 matrices    
         double[] pha =new double[m_ar*m_br]; 
@@ -55,22 +56,26 @@ class MatrixProduct{
 
         double Time1, Time2;
 
+        int r = 0;
         Time1 = System.nanoTime();
         //Product Calculation
-        for(i=0; i<m_ar; i++)
-        {	for( j=0; j<m_br; j++)
-            {	temp = 0;
-                for( k=0; k<m_ar; k++)
-                {	
-                    temp += pha[i*m_ar+k] * phb[k*m_br+j];
+        while(runs > r){
+            for(i=0; i<m_ar; i++)
+            {	for( j=0; j<m_br; j++)
+                {	temp = 0;
+                    for( k=0; k<m_ar; k++)
+                    {	
+                        temp += pha[i*m_ar+k] * phb[k*m_br+j];
+                    }
+                    phc[i*m_ar+j]=temp;
                 }
-                phc[i*m_ar+j]=temp;
             }
+            r++;
         }
 
         Time2 = System.nanoTime();
 
-        double TimeElapsed = (Time2-Time1)/(Math.pow(10,9));
+        double TimeElapsed = (Time2-Time1)/(Math.pow(10,9))/runs;
 
         System.out.println("Time: " + TimeElapsed + " seconds");
 
@@ -87,7 +92,7 @@ class MatrixProduct{
 
     }
 
-    public static void OnMultLine(int m_ar, int m_br){
+    public static void OnMultLine(int m_ar, int m_br, int runs){
          //creating 3 matrices    
         double[] pha =new double[m_ar*m_br]; 
         double[] phb =new double[m_ar*m_br]; 
@@ -108,21 +113,25 @@ class MatrixProduct{
 
         double Time1, Time2;
 
+        int r = 0;
         Time1 = System.nanoTime();
         //Product Calculation
-        for(i=0; i<m_ar; i++)
-        {	for( k=0; k<m_ar; k++)
-            {	
-                for( j=0; j<m_br; j++)
+        while(r < runs){
+            for(i=0; i<m_ar; i++)
+            {	for( k=0; k<m_ar; k++)
                 {	
-                    phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+                    for( j=0; j<m_br; j++)
+                    {	
+                        phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
+                    }
                 }
             }
+            r++;
         }
 
         Time2 = System.nanoTime();
 
-        double TimeElapsed = (Time2-Time1)/(Math.pow(10,9));
+        double TimeElapsed = (Time2-Time1)/(Math.pow(10,9))/runs;
 
         System.out.println("Time: " + TimeElapsed + " seconds");
 
@@ -139,7 +148,7 @@ class MatrixProduct{
     }
 
 
-    public static void runTests(){
+    public static void runTests(int runs){
         
         //1.
         int initial_size = 600;
@@ -157,7 +166,7 @@ class MatrixProduct{
 
         for(int i = initial_size; i <= final_size; i+=increment){
             System.out.println("Size: " + i + " by " + i);
-            OnMult(i,i);
+            OnMult(i,i, runs);
             System.out.println("");
         }
 
@@ -177,7 +186,7 @@ class MatrixProduct{
         for(int i = initial_size; i <= final_size; i+=increment){
 
             System.out.println("Size: " + i + " by " + i);
-            OnMultLine(i,i);
+            OnMultLine(i,i, runs);
             System.out.println("");
         }
 
@@ -197,7 +206,7 @@ class MatrixProduct{
         for(int i = initial_size; i <= final_size; i+=increment){
             
             System.out.println("Size: " + i + " by " + i);
-            OnMultLine(i,i);
+            OnMultLine(i,i,runs);
             System.out.println("");
         }
 
