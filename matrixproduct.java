@@ -1,8 +1,36 @@
+import java.io.PrintStream;
+import java.util.*; 
+
 class MatrixProduct{  
     public static void main(String args[]){  
-        int side = 1500;
-        OnMult(side,side);
-        OnMultLine(side,side);
+        
+        System.out.println("1. Multiplication");
+		System.out.println("2. Line Multiplication");
+		System.out.println("4. Run Timed Tests");
+		System.out.println("Selection?: ");
+
+        Scanner sc = new Scanner(System.in);    //System.in is a standard input stream
+        int op = sc.nextInt(); 
+        int lin  = 0, col = 0;
+		if(op !=4){
+			System.out.println("Dimensions: lins=cols ? ");
+			lin = sc.nextInt();  
+			col = lin;
+		}
+
+		switch (op){
+			case 1: 
+				OnMult(lin, col);
+				break;
+			case 2:
+				OnMultLine(lin, col);  
+				break;
+			case 4:
+				runTests();
+				break;
+
+		}
+
     }  
 
     public static void OnMult(int m_ar, int m_br){
@@ -109,4 +137,71 @@ class MatrixProduct{
 
         System.out.println("");
     }
+
+
+    public static void runTests(){
+        
+        //1.
+        int initial_size = 600;
+        int increment = 400;
+        int final_size = 3000;
+        int ret;
+        
+        try{
+            PrintStream fileOut = new PrintStream("./javatests/1.txt");
+            // Redirect standard out to file.
+            System.setOut(fileOut);
+        }catch(Exception e){
+            System.out.println("Error: " + e);
+        }
+
+        for(int i = initial_size; i <= final_size; i+=increment){
+            System.out.println("Size: " + i + " by " + i);
+            OnMult(i,i);
+            System.out.println("");
+        }
+
+
+        //2a.
+        initial_size = 600;
+        increment = 400;
+        final_size = 3000;
+        try{
+            PrintStream fileOut = new PrintStream("./javatests/2a.txt");
+            // Redirect standard out to file.
+            System.setOut(fileOut);
+        }catch(Exception e){
+            System.out.println("Error: " + e);
+        }
+
+        for(int i = initial_size; i <= final_size; i+=increment){
+
+            System.out.println("Size: " + i + " by " + i);
+            OnMultLine(i,i);
+            System.out.println("");
+        }
+
+        //2b.
+        initial_size = 4096;
+        increment = 2048;
+        final_size = 10240;
+
+        try{
+            PrintStream fileOut = new PrintStream("./javatests/2b.txt");
+            // Redirect standard out to file.
+            System.setOut(fileOut);
+        }catch(Exception e){
+            System.out.println("Error: " + e);
+        }
+
+        for(int i = initial_size; i <= final_size; i+=increment){
+            
+            System.out.println("Size: " + i + " by " + i);
+            OnMultLine(i,i);
+            System.out.println("");
+        }
+
+
+    }
+
 }  

@@ -4,12 +4,13 @@
 #include <time.h>
 #include <cstdlib>
 #include <papi.h>
+#include <string>
 
 using namespace std;
 
 #define SYSTEMTIME clock_t
 
- 
+
 void OnMult(int m_ar, int m_br) 
 {
 	
@@ -161,19 +162,6 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
 
 
     Time1 = clock();
-// for (int ii = 0;  ii < m_ar; ii++){
-// 	for (int jj = 0;  jj < m_br; jj++){
-// 		for (int kk = 0;  kk < m_br; kk++){
-// 			for(i=ii*bkSize; i< (ii+1)*bkSize; i++){
-// 				for( k=kk; k<(kk+1)*bkSize; k++){	
-// 					for( j=jj*bkSize; j<(jj+1)*bkSize; j++){	
-// 						phc[i*m_ar+j] += pha[i*m_ar+k] * phb[k*m_br+j];
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// }
 
 
 	for(int ii = 0; ii < m_ar; ii += bkSize){
@@ -211,7 +199,97 @@ void OnMultBlock(int m_ar, int m_br, int bkSize)
     
 }
 
+void printDCMs(int EventSet){
 
+  	long long values[2];
+	int ret;
+	ret = PAPI_stop(EventSet, values);
+	if (ret != PAPI_OK) cout << "ERROR: Stop PAPI" << endl;
+	printf("L1 DCM: %lld \n",values[0]);
+	printf("L2 DCM: %lld \n",values[1]);
+
+	ret = PAPI_reset( EventSet );
+	if ( ret != PAPI_OK )
+		std::cout << "FAIL reset" << endl; 
+}
+
+void runTests(int EventSet){
+	
+	//1.
+	int initial_size = 600;
+	int increment = 400;
+	int final_size = 3000;
+	int ret;
+	freopen("./ctests/1.txt", "w", stdout); 
+	for(int i = initial_size; i <= final_size; i+=increment){
+		ret = PAPI_start(EventSet);
+		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+
+		cout << "Size: " << i << " by " << i << endl;
+		OnMult(i,i);
+
+		printDCMs(EventSet);
+		cout << endl << endl;
+	}
+
+
+	//2a.
+	initial_size = 600;
+	increment = 400;
+	final_size = 3000;
+	freopen("./ctests/2a.txt", "w", stdout); 
+	for(int i = initial_size; i <= final_size; i+=increment){
+		ret = PAPI_start(EventSet);
+		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+
+		cout << "Size: " << i << " by " << i << endl;
+		OnMultLine(i,i);
+
+		printDCMs(EventSet);
+		cout << endl << endl;
+	}
+
+	//2b.
+	initial_size = 4096;
+	increment = 2048;
+	final_size = 10240;
+	freopen("./ctests/2b.txt", "w", stdout); 
+	for(int i = initial_size; i <= final_size; i+=increment){
+		ret = PAPI_start(EventSet);
+		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+
+		cout << "Size: " << i << " by " << i << endl;
+		OnMultLine(i,i);
+
+		printDCMs(EventSet);
+		cout << endl << endl;
+	}
+
+
+	//3.
+	initial_size = 4096;
+	increment = 2048;
+	final_size = 10240;
+	int block = 128;
+	int max_block = 512;
+	freopen("./ctests/3.txt", "w", stdout); 
+	for(int i = initial_size; i <= final_size; i+=increment){
+		for(int j = block; j <= max_block; j = 2*j){
+		ret = PAPI_start(EventSet);
+		if (ret != PAPI_OK) cout << "ERROR: Start PAPI" << endl;
+			cout << "Size: " << i << " by " << i << endl;
+			cout << "Block: " << j << endl;
+			OnMultLine(i,i);
+
+			printDCMs(EventSet);
+			cout << endl << endl;
+		}
+
+
+	}
+
+
+}
 
 void handle_error (int retval)
 {
@@ -267,13 +345,16 @@ int main (int argc, char *argv[])
 		cout << endl << "1. Multiplication" << endl;
 		cout << "2. Line Multiplication" << endl;
 		cout << "3. Block Multiplication" << endl;
+		cout << "4. Run Timed Tests" << endl;
 		cout << "Selection?: ";
 		cin >>op;
 		if (op == 0)
 			break;
-		printf("Dimensions: lins=cols ? ");
-   		cin >> lin;
-   		col = lin;
+		if(op !=4){
+			printf("Dimensions: lins=cols ? ");
+			cin >> lin;
+			col = lin;
+		}
 
 
 		// Start counting
@@ -292,6 +373,9 @@ int main (int argc, char *argv[])
 				cin >> blockSize;
 				OnMultBlock(lin, col, blockSize);  
 				break;
+			case 4:
+				runTests(EventSet);
+				break;
 
 		}
 
@@ -306,7 +390,7 @@ int main (int argc, char *argv[])
 
 
 
-	}while (op != 0);
+	}while (op != 0 && op != 4);
 
 	ret = PAPI_remove_event( EventSet, PAPI_L1_DCM );
 	if ( ret != PAPI_OK )
