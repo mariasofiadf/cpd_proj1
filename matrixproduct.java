@@ -190,26 +190,6 @@ class MatrixProduct{
             System.out.println("");
         }
 
-        //2b.
-        initial_size = 4096;
-        increment = 2048;
-        final_size = 10240;
-
-        try{
-            PrintStream fileOut = new PrintStream("./javatests/2b.txt");
-            // Redirect standard out to file.
-            System.setOut(fileOut);
-        }catch(Exception e){
-            System.out.println("Error: " + e);
-        }
-
-        for(int i = initial_size; i <= final_size; i+=increment){
-            
-            System.out.println("Size: " + i + " by " + i);
-            OnMultLine(i,i,runs);
-            System.out.println("");
-        }
-
 
     }
 
